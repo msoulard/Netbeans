@@ -1,7 +1,7 @@
 /* 
  * File:   serveur.c
  * Author: msoulard
- *
+ * Programme du serveur UDP
  * Created on 29 septembre 2020, 10:47
  */
 
@@ -25,9 +25,9 @@ int main() {
     struct sockaddr_in infosServeur; //variable contenant les informations du serveur
     struct sockaddr_in infosClient; //variable contenant les informations du client
     char donneeRecue; //donnée reçue si le type demandé est char
-    struct tm *dateEtHeure = 0; //donnée envoyé si le type demandé est struct tm
+    struct tm *dateEtHeure; //donnée envoyé si le type demandé est struct tm
     time_t t;
-    char *donneeAEnvoyer = {0}; //variable pour le renvoie de la réponse
+    char *donneeAEnvoyer; //variable pour le renvoie de la réponse
     int retour; // variable de retour pour tester les fonctions
     socklen_t taille;
     int b; //variable pour le bind
@@ -41,10 +41,10 @@ int main() {
     //initialisation de la structure contenant les infos du serveur
     infosServeur.sin_family = AF_INET;
     infosServeur.sin_port = htons(4444); //port dans l'ordre "network"
-    infosServeur.sin_addr.s_addr = inet_addr(INADDR_ANY); //adresse dans l'ordre "network"
+    infosServeur.sin_addr.s_addr = htonl(INADDR_ANY); //adresse dans l'ordre "network"
     //création du bind
     taille = sizeof (infosServeur);
-    b = bind(soc, &infosServeur, taille);
+    b = bind(soc, (struct sockaddr *) &infosServeur, taille);
     if (b == -1) {
         printf("pb création bind : %s \n", strerror(errno));
         exit(errno);
@@ -68,7 +68,7 @@ int main() {
                 t = time(NULL);
                 dateEtHeure = localtime(&t);
                 //envoie de la date et de l'heure
-                retour = sendto(soc, &dateEtHeure, sizeof (dateEtHeure), 0, (struct sockaddr *) &infosClient, sizeof (infosClient));
+                retour = sendto(soc, dateEtHeure, sizeof (struct tm), 0, (struct sockaddr *) &infosClient, sizeof (infosClient));
                 if (retour == -1) {
                     printf("pb sendto : %s \n", strerror(errno));
                     exit(errno);
@@ -78,7 +78,7 @@ int main() {
                 //initialisation du nom
                 donneeAEnvoyer = getenv("USER");
                 //envoie du nom de l'utilisateur
-                retour = sendto(soc, &donneeAEnvoyer, sizeof (donneeAEnvoyer), 0, (struct sockaddr *) &infosClient, sizeof (infosClient));
+                retour = sendto(soc, donneeAEnvoyer, strlen (donneeAEnvoyer), 0, (struct sockaddr *) &infosClient, sizeof (infosClient));
                 if (retour == -1) {
                     printf("pb sendto : %s \n", strerror(errno));
                     exit(errno);
@@ -87,18 +87,27 @@ int main() {
             case 'j':
                 //initialisation du chemin
                 donneeAEnvoyer = getenv("CINNAMON_VERSION");
+                if (donneeAEnvoyer==NULL)
+                {
+                    donneeAEnvoyer=(char *)malloc(5);
+                    strcpy(donneeAEnvoyer,"toto");
+                }
                 //envoie du chemin de l'environnement JAVA sur le serveur
-                retour = sendto(soc, &donneeAEnvoyer, sizeof (donneeAEnvoyer), 0, (struct sockaddr *) &infosClient, sizeof (infosClient));
+                retour = sendto(soc, donneeAEnvoyer, strlen (donneeAEnvoyer), 0, (struct sockaddr *) &infosClient, sizeof (infosClient));
                 if (retour == -1) {
                     printf("pb sendto : %s \n", strerror(errno));
                     exit(errno);
+                }
+                if (donneeAEnvoyer!=NULL)
+                {
+                    free(donneeAEnvoyer);
                 }
                 break;
             case 'l':
                 //initialisation de l'encodage
                 donneeAEnvoyer = getenv("LANG");
                 //envoie de l'encodage des caractères sur le serveur
-                retour = sendto(soc, &donneeAEnvoyer, sizeof (donneeAEnvoyer), 0, (struct sockaddr *) &infosClient, sizeof (infosClient));
+                retour = sendto(soc, donneeAEnvoyer, strlen (donneeAEnvoyer), 0, (struct sockaddr *) &infosClient, sizeof (infosClient));
                 if (retour == -1) {
                     printf("pb sendto : %s \n", strerror(errno));
                     exit(errno);
