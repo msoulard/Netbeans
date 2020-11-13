@@ -1,8 +1,8 @@
-/*
- * File:   p1.c
+/* 
+ * File:   p2.c
  * Author: msoulard
  *
- * Created on 12 octobre 2020, 11:46
+ * Created on 2 novembre 2020, 09:27
  */
 
 #include <sys/types.h>
@@ -17,21 +17,23 @@
 #include "zone.h"
 
 /*
- *
+ * 
  */
-float randomF() {
-    return ((float) 100.0 * (rand() / (RAND_MAX + 0.1)));
-}
-
 int randomI() {
     return ((int) 100.0 * (rand() / (RAND_MAX + 0.1)));
+}
+
+char randomC() {
+    char tabCar[3] = {'a', 'b', 'c'};
+    int index = 0;
+    index = randomI() % 3;
+    return tabCar[index];
 }
 
 int main(int argc, char** argv) {
     key_t clef;
     int id;
     int erreur;
-    char buff[255];
     donnees zoneCommune;
 
     //création de la clef de partage
@@ -47,32 +49,20 @@ int main(int argc, char** argv) {
         exit(errno);
     }
     printf("id du segment : %d\n", id);
-    //boucle infinie d'envoie de la pression et de la température
-    while(1 == 1) {
-        //température
-        memset(buff, '\0', 255);
-        zoneCommune.type = 2;
-        sprintf(buff, "%f", randomF());
-        strcpy(zoneCommune.texte, buff);
+    //boucle infinie de l'envoie
+    while (1 == 1) {
+        //ordre
+        zoneCommune.type = 3;
+        zoneCommune.texte[0] = randomC();
+        zoneCommune.texte[1] = 0;
         erreur = msgsnd(id, &zoneCommune, 9, IPC_NOWAIT);
         if (erreur == -1) {
             printf("problème msgsnd : %s\n", strerror(errno));
             exit(errno);
         }
-        sleep(1);
-        //pression
-        memset(buff, '\0', 255);
-        zoneCommune.type = 4;
-        sprintf(buff, "%d", randomI());
-        strcpy(zoneCommune.texte, buff);
-        erreur = msgsnd(id, &zoneCommune, 9, IPC_NOWAIT);
-        if (erreur == -1) {
-            printf("problème msgsnd : %s\n", strerror(errno));
-            exit(errno);
-        }
-        sleep(1);
-    }    
-    
+        sleep(3);
+    }
+
     return (EXIT_SUCCESS);
 }
 
