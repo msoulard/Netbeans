@@ -12,7 +12,7 @@ $(function ()
     if (window.WebSocket)
     {
         // creation de la WebSocket
-        maWebsocket = new WebSocket('ws://172.18.58.138:8888');
+        maWebsocket = new WebSocket('ws://172.18.58.98:8888');
 
         //Gestion des evenements de la WebSocket
         maWebsocket.onopen = function ()
